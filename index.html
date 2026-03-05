@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Flappy Candy</title>
+<style>
+
+body{
+    margin:0;
+    overflow:hidden;
+    background:pink;
+    font-family:Arial, sans-serif;
+}
+
+canvas{
+    display:block;
+    margin:auto;
+    background:#ffb6d5;
+}
+
+#gameOver{
+    position:absolute;
+    top:40%;
+    width:100%;
+    text-align:center;
+    font-size:40px;
+    color:white;
+    display:none;
+}
+
+</style>
+</head>
+<body>
+
+<div id="gameOver">Game Over 🍭<br>Druk op R om opnieuw te spelen</div>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+
+<script>
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let bird = {
+    x:80,
+    y:200,
+    width:30,
+    height:30,
+    gravity:0.5,
+    lift:-8,
+    velocity:0
+};
+
+let pipes = [];
+let frame = 0;
+let gameOver = false;
+
+function drawBird(){
+    ctx.fillStyle = "yellow";
+    ctx.beginPath();
+    ctx.arc(bird.x, bird.y, 15, 0, Math.PI*2);
+    ctx.fill();
+}
+
+function drawLollipop(x,y){
+    ctx.strokeStyle="#8b5a2b";
+    ctx.lineWidth=6;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x,y+60);
+    ctx.stroke();
+
+    ctx.fillStyle="red";
+    ctx.beginPath();
+    ctx.arc(x,y,20,0,Math.PI*2);
+    ctx.fill();
+}
+
+function update(){
+
+    if(gameOver) return;
+
+    frame++;
+
+    bird.velocity += bird.gravity;
+    bird.y += bird.velocity;
+
+    if(frame % 100 === 0){
+
+        let gap = 150;
+        let top = Math.random()*300 + 50;
+
+        pipes.push({
+            x:canvas.width,
+            top:top,
+            bottom:top+gap,
+            width:40
+        });
+
+    }
+
+    for(let i=0;i<pipes.length;i++){
+
+        pipes[i].x -= 2;
+
+        drawLollipop(pipes[i].x, pipes[i].top);
+        drawLollipop(pipes[i].x, pipes[i].bottom);
+
+        if(
+            bird.x+15 > pipes[i].x &&
+            bird.x-15 < pipes[i].x + pipes[i].width &&
+            (bird.y-15 < pipes[i].top+20 ||
+             bird.y+15 > pipes[i].bottom)
+        ){
+            endGame();
+        }
+
+    }
+
+    if(bird.y > canvas.height || bird.y < 0){
+        endGame();
+    }
+
+}
+
+function endGame(){
+    gameOver = true;
+    document.getElementById("gameOver").style.display="block";
+}
+
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    update();
+    drawBird();
+
+    requestAnimationFrame(draw);
+
+}
+
+document.addEventListener("keydown", function(e){
+
+    if(e.code === "Space" && !gameOver){
+        bird.velocity = bird.lift;
+    }
+
+    if(e.code === "KeyR"){
+        location.reload();
+    }
+
+});
+
+draw();
+
+</script>
+
+</body>
+</html>
